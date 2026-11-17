@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/amoylab/unla/internal/apiserver/database"
 	"github.com/amoylab/unla/internal/auth/jwt"
 	"github.com/amoylab/unla/internal/i18n"
@@ -129,7 +131,11 @@ func (h *OpenAPI) HandleImport(c *gin.Context) {
 	// Use the validated tenant
 	content, err = openapi.PrepareImport(content, c.PostForm("title"))
 	if err != nil {
-		i18n.RespondWithError(c, i18n.ErrBadRequest.WithParam("Reason", err.Error()))
+		if errors.Is(err, openapi.ErrDefaultTitle) {
+			i18n.RespondWithError(c, i18n.ErrorOpenAPIDefaultTitle)
+		} else {
+			i18n.RespondWithError(c, i18n.ErrBadRequest.WithParam("Reason", err.Error()))
+		}
 		return
 	}
 	config, err := converter.ConvertWithOptions(content, tenantPrefix, prefix)

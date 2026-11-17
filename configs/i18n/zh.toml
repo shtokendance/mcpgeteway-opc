@@ -364,4 +364,6 @@ other = "数据导出成功"
 other = "数据导入成功"
 
 [SuccessDataSaved]
-other = "数据保存成功" 
+other = "数据保存成功"
+[ErrorOpenAPIDefaultTitle]
+other = "OpenAPI 标题不能使用“默认模块”，请修改服务名称。"

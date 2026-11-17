@@ -365,3 +365,5 @@ other = "Data imported successfully"
 
 [SuccessDataSaved]
 other = "Data saved successfully"
+[ErrorOpenAPIDefaultTitle]
+other = "The OpenAPI title cannot be 默认模块; please provide a different service name."

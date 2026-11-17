@@ -2,11 +2,14 @@ package openapi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
+
+var ErrDefaultTitle = errors.New("OpenAPI title cannot be 默认模块; please provide a different name")
 
 // PrepareImport applies an optional title and normalizes Apifox OpenAPI schema references.
 func PrepareImport(data []byte, title string) ([]byte, error) {
@@ -23,7 +26,7 @@ func PrepareImport(data []byte, title string) ([]byte, error) {
 	}
 	name, _ := info["title"].(string)
 	if strings.TrimSpace(name) == "默认模块" {
-		return nil, fmt.Errorf("OpenAPI title cannot be 默认模块; please provide a different name")
+		return nil, ErrDefaultTitle
 	}
 	if version, _ := spec["openapi"].(string); strings.HasPrefix(version, "3.0") {
 		normalizeSchemaRefs(spec, false, false)

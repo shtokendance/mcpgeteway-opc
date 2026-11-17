@@ -2,11 +2,12 @@ package i18n
 
 // Common errors
 var (
-	ErrNotFound       = NewErrorWithCode("ErrorResourceNotFound", ErrorNotFound)
-	ErrUnauthorized   = NewErrorWithCode("ErrorUnauthorized", ErrorUnauthorized)
-	ErrForbidden      = NewErrorWithCode("ErrorForbidden", ErrorForbidden)
-	ErrBadRequest     = NewErrorWithCode("ErrorBadRequest", ErrorBadRequest)
-	ErrInternalServer = NewErrorWithCode("ErrorInternalServer", ErrorInternalServer)
+	ErrNotFound              = NewErrorWithCode("ErrorResourceNotFound", ErrorNotFound)
+	ErrUnauthorized          = NewErrorWithCode("ErrorUnauthorized", ErrorUnauthorized)
+	ErrForbidden             = NewErrorWithCode("ErrorForbidden", ErrorForbidden)
+	ErrorOpenAPIDefaultTitle = NewErrorWithCode("ErrorOpenAPIDefaultTitle", ErrorBadRequest)
+	ErrBadRequest            = NewErrorWithCode("ErrorBadRequest", ErrorBadRequest)
+	ErrInternalServer        = NewErrorWithCode("ErrorInternalServer", ErrorInternalServer)
 )
 
 // Tenant related errors
