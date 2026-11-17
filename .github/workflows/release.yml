@@ -129,6 +129,8 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Build web
+        env:
+          VITE_MCP_GATEWAY_BASE_URL: ${{ vars.UNLA_MCP_GATEWAY_BASE_URL }}
         run: |
           cd web
           pnpm run build

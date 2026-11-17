@@ -56,6 +56,7 @@ export interface RuntimeConfig {
     enableExperimental: boolean;
     [key: string]: boolean;
   };
+  VITE_MCP_GATEWAY_BASE_URL: string;
   VITE_DIRECT_MCP_GATEWAY_MODIFIER: string;
   VITE_GATEWAY_SERVICE_BASE_URL: string;
   LLM_CONFIG_ADMIN_ONLY: boolean;
@@ -70,6 +71,7 @@ const defaultRuntimeConfig: RuntimeConfig = {
   features: {
     enableExperimental: false
   },
+  VITE_MCP_GATEWAY_BASE_URL: import.meta.env.VITE_MCP_GATEWAY_BASE_URL || '',
   VITE_DIRECT_MCP_GATEWAY_MODIFIER: ':5235',
   VITE_GATEWAY_SERVICE_BASE_URL: 'http://localhost:5235',
   LLM_CONFIG_ADMIN_ONLY: false
