@@ -168,12 +168,13 @@ export const deleteChatSession = async (sessionId: string) => {
   }
 };
 
-export const importOpenAPI = async (file: File, tenantName?: string, prefix?: string) => {
+export const importOpenAPI = async (file: File, tenantName?: string, prefix?: string, title?: string) => {
   try {
     const formData = new globalThis.FormData();
     formData.append('file', file);
     formData.append('tenantName', tenantName ?? '');
     formData.append('prefix', prefix ?? '');
+    formData.append('title', title ?? '');
 
     const response = await api.post('/openapi/import', formData, {
       headers: {

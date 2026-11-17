@@ -8,6 +8,7 @@ on:
 
 jobs:
   publish:
+    if: github.repository == 'AmoyLab/Unla'
     runs-on: ubuntu-latest
 
     steps:

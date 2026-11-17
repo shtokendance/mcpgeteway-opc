@@ -142,6 +142,7 @@ func (c *Converter) Convert(specData []byte) (*config.MCPConfig, error) {
 			// Add default headers
 			tool.Headers["Content-Type"] = "application/json"
 			tool.Headers["Authorization"] = "{{.Request.Headers.Authorization}}"
+			tool.Headers["Accept-Encoding"] = "identity"
 
 			// Add parameters
 			var bodyArgs []config.ArgConfig
@@ -182,7 +183,10 @@ func (c *Converter) Convert(specData []byte) (*config.MCPConfig, error) {
 				case "query":
 					queryArgs = append(queryArgs, arg)
 				case "header":
-					tool.Headers[arg.Name] = fmt.Sprintf("{{.Args.%s}}", arg.Name)
+					if strings.EqualFold(arg.Name, "Accept-Encoding") {
+						delete(tool.Headers, "Accept-Encoding")
+					}
+					tool.Headers[arg.Name] = fmt.Sprintf("{{index .Args %q}}", arg.Name)
 					headerArgs = append(headerArgs, arg)
 				}
 			}

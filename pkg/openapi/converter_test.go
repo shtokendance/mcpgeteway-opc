@@ -693,7 +693,7 @@ func TestConverter_Convert_ParamsAndBodyMapping(t *testing.T) {
 	// Default headers plus mapped header param
 	assert.Equal(t, "application/json", tool.Headers["Content-Type"])
 	assert.Equal(t, "{{.Request.Headers.Authorization}}", tool.Headers["Authorization"])
-	assert.Equal(t, "{{.Args.X-Custom}}", tool.Headers["X-Custom"])
+	assert.Equal(t, `{{index .Args "X-Custom"}}`, tool.Headers["X-Custom"])
 
 	// Endpoint path param substituted
 	assert.Equal(t, "{{.Config.url}}/users/{{.Args.id}}", tool.Endpoint)
@@ -757,4 +757,46 @@ func TestConverter_Convert_SkipOptionsAndKeepSummaryAsDescription(t *testing.T) 
 		}
 	}
 	assert.True(t, found)
+}
+
+func TestApifoxImport(t *testing.T) {
+	spec := []byte(`{"openapi":"3.0.1","info":{"title":"默认模块","version":"1"},"paths":{"/items":{"get":{"responses":{"200":{"description":"ok","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Item","description":"Item description"}}}}}}}},"components":{"schemas":{"Item":{"type":"object","properties":{"id":{"type":"string"}}}}}}`)
+	_, err := PrepareImport(spec, "")
+	assert.ErrorContains(t, err, "默认模块")
+	prepared, err := PrepareImport(spec, "Inventory")
+	if !assert.NoError(t, err) {
+		return
+	}
+	cfg, err := NewConverter().Convert(prepared)
+	if !assert.NoError(t, err) {
+		return
+	}
+	assert.True(t, strings.HasPrefix(cfg.Name, "Inventory_"))
+	if assert.Len(t, cfg.Tools, 1) {
+		assert.Equal(t, "identity", cfg.Tools[0].Headers["Accept-Encoding"])
+	}
+}
+
+func TestImportRespectsExplicitAcceptEncoding(t *testing.T) {
+	spec := []byte(`{"openapi":"3.0.1","info":{"title":"Inventory","version":"1"},"paths":{"/items":{"get":{"parameters":[{"name":"accept-encoding","in":"header","schema":{"type":"string"}}],"responses":{"200":{"description":"ok"}}}}}}`)
+	prepared, err := PrepareImport(spec, "")
+	if !assert.NoError(t, err) {
+		return
+	}
+	cfg, err := NewConverter().Convert(prepared)
+	if !assert.NoError(t, err) {
+		return
+	}
+	if assert.Len(t, cfg.Tools, 1) {
+		assert.NotContains(t, cfg.Tools[0].Headers, "Accept-Encoding")
+		assert.Equal(t, `{{index .Args "accept-encoding"}}`, cfg.Tools[0].Headers["accept-encoding"])
+	}
+}
+
+func TestPrepareImportPreservesExampleReferences(t *testing.T) {
+	spec := []byte(`{"openapi":"3.0.1","info":{"title":"Inventory","version":"1"},"paths":{},"components":{"schemas":{"Item":{"type":"object","example":{"$ref":"literal","description":"literal"}}}}}`)
+	prepared, err := PrepareImport(spec, "")
+	if assert.NoError(t, err) {
+		assert.Contains(t, string(prepared), `"example":{"$ref":"literal","description":"literal"}`)
+	}
 }

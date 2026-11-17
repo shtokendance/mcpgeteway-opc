@@ -340,7 +340,10 @@
     "upload_openapi_file": "Upload OpenAPI File",
     "drag_drop_openapi": "Drag and drop your OpenAPI specification",
     "or_click_to_browse": "or click to browse files",
-    "import_openapi_description": "Import OpenAPI specification to create MCP server configuration"
+    "import_openapi_description": "Import OpenAPI specification to create MCP server configuration",
+    "import_title_label": "Service name",
+    "import_title_required": "The title cannot be “默认模块”. Enter a new service name to continue.",
+    "import_continue": "Continue import"
   },
   "chat": {
     "title": "Chat",

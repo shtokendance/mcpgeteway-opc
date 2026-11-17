@@ -127,6 +127,11 @@ func (h *OpenAPI) HandleImport(c *gin.Context) {
 	converter := openapi.NewConverter()
 
 	// Use the validated tenant
+	content, err = openapi.PrepareImport(content, c.PostForm("title"))
+	if err != nil {
+		i18n.RespondWithError(c, i18n.ErrBadRequest.WithParam("Reason", err.Error()))
+		return
+	}
 	config, err := converter.ConvertWithOptions(content, tenantPrefix, prefix)
 	if err == nil {
 		// Override the tenant field to use tenant name instead of prefix

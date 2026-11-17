@@ -1,4 +1,5 @@
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Input } from '@heroui/react';
+import yaml from 'js-yaml';
 import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +20,9 @@ const OpenAPIImport: React.FC<OpenAPIImportProps> = ({ onSuccess, selectedTenant
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const [prefix, setPrefix] = useState('');
   const [loadingTenants, setLoadingTenants] = useState(false);
+  const [pendingFile, setPendingFile] = useState<globalThis.File | null>(null);
+  const [title, setTitle] = useState('');
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     if (tenants.length === 0) {
@@ -43,36 +47,44 @@ const OpenAPIImport: React.FC<OpenAPIImportProps> = ({ onSuccess, selectedTenant
     }
   }, [tenants.length, inheritedTenant, t]);
 
-  const onDrop = useCallback(async (acceptedFiles: globalThis.File[]) => {
-    if (acceptedFiles.length === 0) {
-      toast.error(t('errors.invalid_openapi_file'), {
-        duration: 3000,
-      });
+  const submitImport = useCallback(async (file: globalThis.File, overrideTitle = '') => {
+    const tenantObj = tenants.find((tenant: Tenant) => tenant.name === selectedTenant);
+    if (!tenantObj) {
+      toast.error(t('errors.select_tenant_required', 'Please select a tenant'), { duration: 3000 });
       return;
     }
-
+    setImporting(true);
     try {
-      // Find the selected tenant object
-      const tenantObj = tenants.find((t: Tenant) => t.name === selectedTenant);
-      if (!tenantObj) {
-        toast.error(t('errors.select_tenant_required', 'Please select a tenant'), {
-          duration: 3000,
-        });
-        return;
-      }
-
-      const tenantName = tenantObj.name;
-      await importOpenAPI(acceptedFiles[0], tenantName, prefix);
-      toast.success(t('errors.import_openapi_success'), {
-        duration: 3000,
-      });
+      await importOpenAPI(file, tenantObj.name, prefix, overrideTitle);
+      setPendingFile(null);
+      toast.success(t('errors.import_openapi_success'), { duration: 3000 });
       onSuccess?.();
     } catch {
-      toast.error(t('errors.import_openapi_failed'), {
-        duration: 3000,
-      })
+      // The API layer displays the server error.
+    } finally {
+      setImporting(false);
     }
   }, [onSuccess, selectedTenant, prefix, tenants, t]);
+
+  const onDrop = useCallback(async (acceptedFiles: globalThis.File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) {
+      toast.error(t('errors.invalid_openapi_file'), { duration: 3000 });
+      return;
+    }
+    try {
+      const doc = yaml.load(await file.text()) as { info?: { title?: unknown } } | undefined;
+      if (typeof doc?.info?.title === 'string' && doc.info.title.trim() === '默认模块') {
+        setTitle('');
+        setPendingFile(file);
+        return;
+      }
+    } catch {
+      // Let the server report invalid OpenAPI documents.
+    }
+    setPendingFile(null);
+    await submitImport(file);
+  }, [submitImport, t]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -86,6 +98,24 @@ const OpenAPIImport: React.FC<OpenAPIImportProps> = ({ onSuccess, selectedTenant
 
   return (
     <div className="w-full space-y-6">
+      {pendingFile && (
+        <div className="space-y-3" role="alert">
+          <Input
+            label={t('gateway.import_title_label')}
+            description={t('gateway.import_title_required')}
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+          <Button
+            color="primary"
+            isLoading={importing}
+            isDisabled={!title.trim() || title.trim() === '默认模块'}
+            onPress={() => submitImport(pendingFile, title.trim())}
+          >
+            {t('gateway.import_continue')}
+          </Button>
+        </div>
+      )}
       {/* Configuration Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
