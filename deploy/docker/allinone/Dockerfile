@@ -2,6 +2,9 @@ FROM golang:1.25.0 AS builder
 
 WORKDIR /app
 
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
+
 COPY go.mod go.sum ./
 
 RUN go mod download
@@ -19,15 +22,17 @@ WORKDIR /app/web
 
 COPY web/ .
 
-RUN npm install -g pnpm@9.15.0
-RUN pnpm install --frozen-lockfile
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+RUN npm config set registry ${NPM_REGISTRY} && \
+    npm install -g pnpm@9.15.0
+RUN pnpm install --frozen-lockfile --registry=${NPM_REGISTRY}
 RUN pnpm run build
 
-FROM ghcr.io/amoylab/unla/base:latest AS runtime
+FROM registry.ap-southeast-1.aliyuncs.com/amoylab/unla-base:latest AS runtime
 
-ARG PIP_INDEX_URL=https://pypi.org/simple
-ARG UV_DEFAULT_INDEX=https://pypi.org/simple
-ARG pnpm_config_registry=https://registry.npmjs.org/
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG UV_DEFAULT_INDEX=https://mirrors.aliyun.com/pypi/simple/
+ARG pnpm_config_registry=https://registry.npmmirror.com
 
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX} \
@@ -35,7 +40,8 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 
 # Configure pip and pnpm to use the specified repositories
 RUN mkdir -p /root/.config/pip && \
-    echo "[global]\nindex-url = \${PIP_INDEX_URL}" > /root/.config/pip/pip.conf && \
+    printf '[global]\nindex-url = %s\n' "${PIP_INDEX_URL}" > /root/.config/pip/pip.conf && \
+    npm config set registry ${pnpm_config_registry} && \
     npm install -g pnpm@9.15.0 && \
     pnpm config set registry ${pnpm_config_registry} -g
 
