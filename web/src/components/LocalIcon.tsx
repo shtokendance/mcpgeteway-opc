@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import iconMap from '@/icons/icon-map.json';
+
+const icons = import.meta.glob<string>('../assets/icons/*.svg', { eager: true, query: '?raw', import: 'default' });
 
 interface LocalIconProps {
   icon: string;
@@ -19,31 +21,16 @@ const LocalIcon: React.FC<LocalIconProps> = ({
   height = 24,
   onClick
 }) => {
-  const [svgContent, setSvgContent] = useState<string>('');
   const iconPath = iconMap[icon as keyof typeof iconMap];
+  const svg = iconPath && icons[`../assets${iconPath}`];
 
-  useEffect(() => {
-    if (!iconPath) {
-      console.warn(`Icon not found: ${icon}`);
-      return;
-    }
-
-    fetch(iconPath)
-      .then(response => response.text())
-      .then(svg => {
-        const modifiedSvg = svg
-          .replace(/width="[^"]*"/, `width="${width}"`)
-          .replace(/height="[^"]*"/, `height="${height}"`);
-        setSvgContent(modifiedSvg);
-      })
-      .catch(error => {
-        console.error(`Failed to load icon: ${icon}`, error);
-      });
-  }, [icon, iconPath, width, height]);
-
-  if (!iconPath) {
+  if (!svg) {
     return null;
   }
+
+  const svgContent = svg
+    .replace(/width="[^"]*"/, `width="${width}"`)
+    .replace(/height="[^"]*"/, `height="${height}"`);
 
   return (
     <span

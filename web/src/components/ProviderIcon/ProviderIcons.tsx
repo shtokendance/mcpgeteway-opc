@@ -2,11 +2,11 @@ import React from 'react';
 
 import { IconType } from './types';
 
-// SVG Icon component that loads SVG files from public directory
+const providerIcons = import.meta.glob<string>('../../assets/icons/providers/*.svg', { eager: true, query: '?inline', import: 'default' });
 const createSVGIcon = (svgFileName: string) => {
   const IconComponent = React.memo<IconType>(({ size = 24, className, style }) => (
     <img
-      src={`/icons/providers/${svgFileName}`}
+      src={providerIcons[`../../assets/icons/providers/${svgFileName}`]}
       alt=""
       width={size}
       height={size}
@@ -18,7 +18,7 @@ const createSVGIcon = (svgFileName: string) => {
   return IconComponent;
 };
 
-// Provider Icons using SVG files from public directory
+
 export const OpenAI = createSVGIcon('openai.svg');
 export const Azure = createSVGIcon('azure.svg');
 export const AzureAI = createSVGIcon('azureai.svg');

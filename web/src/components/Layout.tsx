@@ -15,6 +15,7 @@ import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
 
+import logoImg from '@/assets/logo.png?inline';
 import {ChangePasswordDialog} from '@/components/ChangePasswordDialog';
 import {LanguageSwitcher} from '@/components/LanguageSwitcher';
 import LocalIcon from '@/components/LocalIcon';
@@ -22,7 +23,6 @@ import {WechatQRCode} from '@/components/WechatQRCode';
 import {getCurrentUser} from '@/services/api';
 import {toast} from '@/utils/toast';
 
-import logoImg from '/logo.png';
 
 interface LayoutProps {
   children: React.ReactNode;
